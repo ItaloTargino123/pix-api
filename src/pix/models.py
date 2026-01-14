@@ -2,6 +2,9 @@ from django.db import models
 from nanoid import generate
 import uuid
 
+def generate_id():
+    return generate(size=12)
+
 
 class Stream(models.Model):
     STATUS_ACTIVE = "active"
@@ -12,7 +15,7 @@ class Stream(models.Model):
     ]
 
     id = models.CharField(
-        primary_key=True, max_length=20, default=lambda: generate(size=12)
+        primary_key=True, max_length=20, default=generate_id
     )
     ispb = models.CharField(max_length=8, db_index=True)
     status = models.CharField(
