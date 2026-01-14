@@ -1,3 +1,6 @@
+import asyncio
+import time
+
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -75,3 +78,17 @@ class StreamService:
             messages = list(PixMessage.objects.filter(id__in=ids))
 
         return messages
+
+    async def fetch_messages_with_polling(self, stream: Stream, limit: int = 1) -> list[PixMessage]:
+        timeout = settings.PIX_LONG_POLLING_TIMEOUT
+        start = time.time()
+
+        while True:
+            messages = self.fetch_messages(stream, limit)
+            if messages:
+                return messages
+
+            if time.time() - start >= timeout:
+                return []
+
+            await asyncio.sleep(0.5)
