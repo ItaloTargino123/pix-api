@@ -1,6 +1,7 @@
 import asyncio
 import time
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -84,7 +85,7 @@ class StreamService:
         start = time.time()
 
         while True:
-            messages = self.fetch_messages(stream, limit)
+            messages = await sync_to_async(self.fetch_messages)(stream, limit)
             if messages:
                 return messages
 
