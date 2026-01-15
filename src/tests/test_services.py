@@ -193,3 +193,46 @@ class TestStreamServiceFetchMessages:
         found = service.get_stream('12345678', stream.id)
 
         assert found is None
+
+
+
+@pytest.mark.django_db(transaction=True)
+class TestStreamServiceConcurrency:
+
+    def test_concurrent_fetch_no_duplicate_messages(self, mock_redis):
+        """Testa que múltiplas threads não pegam a mesma mensagem."""
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+
+        ispb = '12345678'
+
+        # Cria 10 mensagens
+        for i in range(10):
+            PixMessage.objects.create(
+                end_to_end_id=f'E12345678202301011234CONC{i:02d}',
+                valor=Decimal('10.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': ispb},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        # Cria streams separados para cada "cliente"
+        streams = [Stream.objects.create(ispb=ispb) for _ in range(5)]
+        
+        fetched_ids = []
+        lock = threading.Lock()
+
+        def fetch_message(stream):
+            service = StreamService()
+            messages = service.fetch_messages(stream, limit=2)
+            with lock:
+                for msg in messages:
+                    fetched_ids.append(str(msg.id))
+
+        # Executa 5 threads simultaneamente
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            executor.map(fetch_message, streams)
+
+        # Verifica que não há duplicatas
+        assert len(fetched_ids) == len(set(fetched_ids)), "Mensagens duplicadas encontradas!"
+        assert len(fetched_ids) == 10  # Todas as mensagens foram distribuídas
