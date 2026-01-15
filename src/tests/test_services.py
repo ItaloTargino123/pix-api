@@ -38,3 +38,24 @@ def pending_message(stream):
         recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
         data_hora_pagamento=timezone.now(),
     )
+
+
+@pytest.mark.django_db
+class TestStreamServiceCreate:
+
+    def test_create_stream_success(self, service, mock_redis):
+        stream = service.create_stream('12345678')
+
+        assert stream is not None
+        assert stream.ispb == '12345678'
+        assert stream.status == Stream.STATUS_ACTIVE
+        mock_redis.incr.assert_called_once()
+
+    def test_create_stream_limit_reached(self, service, mock_redis):
+        mock_redis.get.return_value = b'6'
+
+        stream = service.create_stream('12345678')
+
+        assert stream is None
+        mock_redis.incr.assert_not_called()
+
