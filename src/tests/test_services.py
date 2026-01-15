@@ -134,4 +134,18 @@ class TestStreamServiceFetchMessages:
         messages = service.fetch_messages(stream, limit=1)
 
         assert messages == []
+
+    def test_fetch_messages_respects_limit(self, service, stream):
+        for i in range(5):
+            PixMessage.objects.create(
+                end_to_end_id=f'E12345678202301011234LIM{i}',
+                valor=Decimal('10.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        messages = service.fetch_messages(stream, limit=3)
+
+        assert len(messages) == 3
     
