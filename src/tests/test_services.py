@@ -172,3 +172,17 @@ class TestStreamServiceFetchMessages:
         assert len(messages) == 1
         assert messages[0].recebedor_ispb == '12345678'
     
+    def test_fetch_messages_max_ten_multipart(self, service, stream):
+        for i in range(15):
+            PixMessage.objects.create(
+                end_to_end_id=f'E12345678202301011234MAX{i:02d}',
+                valor=Decimal('10.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        messages = service.fetch_messages(stream, limit=10)
+
+        assert len(messages) == 10
+
