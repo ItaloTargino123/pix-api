@@ -148,4 +148,27 @@ class TestStreamServiceFetchMessages:
         messages = service.fetch_messages(stream, limit=3)
 
         assert len(messages) == 3
+
+    def test_fetch_messages_only_returns_matching_ispb(self, service, stream):
+        # Mensagem para outro ISPB
+        PixMessage.objects.create(
+            end_to_end_id='E99999999202301011234OTHER',
+            valor=Decimal('10.00'),
+            pagador={'nome': 'Pagador', 'ispb': '00000000'},
+            recebedor={'nome': 'Recebedor', 'ispb': '99999999'},
+            data_hora_pagamento=timezone.now(),
+        )
+        # Mensagem para o ISPB correto
+        PixMessage.objects.create(
+            end_to_end_id='E12345678202301011234MATCH',
+            valor=Decimal('20.00'),
+            pagador={'nome': 'Pagador', 'ispb': '00000000'},
+            recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+            data_hora_pagamento=timezone.now(),
+        )
+
+        messages = service.fetch_messages(stream, limit=10)
+
+        assert len(messages) == 1
+        assert messages[0].recebedor_ispb == '12345678'
     
