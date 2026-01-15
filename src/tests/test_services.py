@@ -186,3 +186,10 @@ class TestStreamServiceFetchMessages:
 
         assert len(messages) == 10
 
+    def test_closed_stream_not_found(self, service, mock_redis):
+        stream = Stream.objects.create(ispb='12345678')
+        service.close_stream(stream)
+
+        found = service.get_stream('12345678', stream.id)
+
+        assert found is None
