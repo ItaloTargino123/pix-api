@@ -112,3 +112,13 @@ class TestStreamServiceClose:
         service.close_stream(stream)
 
         mock_redis.decr.assert_not_called()
+
+
+@pytest.mark.django_db
+class TestStreamServiceFetchMessages:
+
+    def test_fetch_messages_returns_pending(self, service, stream, pending_message):
+        messages = service.fetch_messages(stream, limit=1)
+
+        assert len(messages) == 1
+        assert messages[0].id == pending_message.id
