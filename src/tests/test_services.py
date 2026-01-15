@@ -81,3 +81,34 @@ class TestStreamServiceGet:
 
         assert found is None
 
+
+@pytest.mark.django_db
+class TestStreamServiceClose:
+
+    def test_close_stream_updates_status(self, service, stream, mock_redis):
+        service.close_stream(stream)
+
+
+        stream.refresh_from_db()
+        assert stream.status == Stream.STATUS_CLOSED
+        assert stream.closed_at is not None
+        mock_redis.decr.assert_called_once()
+
+    def test_close_stream_releases_messages(self, service, stream, pending_message, mock_redis):
+        pending_message.stream = stream
+        pending_message.status = PixMessage.STATUS_DELIVERED
+        pending_message.save()
+
+        service.close_stream(stream)
+
+        pending_message.refresh_from_db()
+        assert pending_message.status == PixMessage.STATUS_PENDING
+        assert pending_message.stream is None
+
+    def test_close_stream_already_closed(self, service, stream, mock_redis):
+        stream.status = Stream.STATUS_CLOSED
+        stream.save()
+
+        service.close_stream(stream)
+
+        mock_redis.decr.assert_not_called()
