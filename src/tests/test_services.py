@@ -129,3 +129,9 @@ class TestStreamServiceFetchMessages:
         pending_message.refresh_from_db()
         assert pending_message.status == PixMessage.STATUS_DELIVERED
         assert pending_message.stream == stream
+
+    def test_fetch_messages_empty_when_none(self, service, stream):
+        messages = service.fetch_messages(stream, limit=1)
+
+        assert messages == []
+    
