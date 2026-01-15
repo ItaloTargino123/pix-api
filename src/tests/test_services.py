@@ -236,3 +236,26 @@ class TestStreamServiceConcurrency:
         # Verifica que não há duplicatas
         assert len(fetched_ids) == len(set(fetched_ids)), "Mensagens duplicadas encontradas!"
         assert len(fetched_ids) == 10  # Todas as mensagens foram distribuídas
+
+@pytest.mark.django_db(transaction=True)
+class TestStreamServicePolling:
+
+    @pytest.mark.asyncio
+    async def test_polling_returns_immediately_when_messages_exist(self, mock_redis):
+        @sync_to_async
+        def setup_data():
+            stream = Stream.objects.create(ispb='12345678')
+            msg = PixMessage.objects.create(
+                end_to_end_id='E12345678202301011234POLL',
+                valor=Decimal('100.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+            return stream, msg
+
+        stream, msg = await setup_data()
+        service = StreamService()
+        messages = await service.fetch_messages_with_polling(stream, limit=1)
+
+        assert len(messages) == 1
