@@ -291,3 +291,21 @@ class TestStreamServicePolling:
         messages, _ = await asyncio.gather(polling_task, insert_task)
 
         assert len(messages) == 1
+    
+    @pytest.mark.asyncio
+    async def test_polling_returns_empty_after_timeout(self, mock_redis):
+        @sync_to_async
+        def setup_data():
+            return Stream.objects.create(ispb='99999999')
+
+        stream = await setup_data()
+
+        with patch('pix.services.settings') as mock_settings:
+            mock_settings.PIX_LONG_POLLING_TIMEOUT = 8
+            mock_settings.REDIS_URL = 'redis://localhost:6379/0'
+            mock_settings.PIX_MAX_STREAMS_PER_ISPB = 6
+
+            service = StreamService()
+            messages = await service.fetch_messages_with_polling(stream, limit=1)
+
+            assert messages == []
