@@ -59,3 +59,25 @@ class TestStreamServiceCreate:
         assert stream is None
         mock_redis.incr.assert_not_called()
 
+
+@pytest.mark.django_db
+class TestStreamServiceGet:
+
+    def test_get_stream_success(self, service, stream):
+        found = service.get_stream(stream.ispb, stream.id)
+
+        assert found == stream
+
+    def test_get_stream_not_found(self, service):
+        found = service.get_stream('12345678', 'invalid_id')
+
+        assert found is None
+
+    def test_get_stream_closed_returns_none(self, service, stream):
+        stream.status = Stream.STATUS_CLOSED
+        stream.save()
+
+        found = service.get_stream(stream.ispb, stream.id)
+
+        assert found is None
+
