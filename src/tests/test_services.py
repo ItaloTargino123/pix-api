@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from unittest.mock import MagicMock, patch
 from decimal import Decimal
@@ -257,5 +258,36 @@ class TestStreamServicePolling:
         stream, msg = await setup_data()
         service = StreamService()
         messages = await service.fetch_messages_with_polling(stream, limit=1)
+
+        assert len(messages) == 1
+
+    @pytest.mark.asyncio
+    async def test_polling_returns_when_message_arrives(self, mock_redis):
+        @sync_to_async
+        def create_stream():
+            return Stream.objects.create(ispb='12345678')
+        
+        @sync_to_async
+        def create_message():
+            return PixMessage.objects.create(
+                end_to_end_id='E12345678202301011234ARRIVE',
+                valor=Decimal('100.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        stream = await create_stream()
+        service = StreamService()
+
+        async def insert_message_later():
+            await asyncio.sleep(1)  # Espera 1 segundo
+            await create_message()   # Insere mensagem
+
+        # Executa em paralelo: polling + inserção
+        polling_task = service.fetch_messages_with_polling(stream, limit=1)
+        insert_task = insert_message_later()
+    
+        messages, _ = await asyncio.gather(polling_task, insert_task)
 
         assert len(messages) == 1
