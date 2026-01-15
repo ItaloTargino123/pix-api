@@ -122,3 +122,10 @@ class TestStreamServiceFetchMessages:
 
         assert len(messages) == 1
         assert messages[0].id == pending_message.id
+
+    def test_fetch_messages_marks_as_delivered(self, service, stream, pending_message):
+        service.fetch_messages(stream, limit=1)
+
+        pending_message.refresh_from_db()
+        assert pending_message.status == PixMessage.STATUS_DELIVERED
+        assert pending_message.stream == stream
