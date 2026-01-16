@@ -84,4 +84,9 @@ class TestStreamStart:
         assert response.status_code == 200
         assert 'Pull-Next' in response.headers
         assert response.data['endToEndId'] == 'E12345678202301011234START'
+
+    def test_stream_start_invalid_ispb(self, client):
+        response = client.get('/api/pix/123/stream/start')
+
+        assert response.status_code == 400
     
