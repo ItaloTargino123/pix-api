@@ -153,3 +153,19 @@ class TestStreamResponse:
         assert 'Pull-Next' in response.headers
         assert '/api/pix/12345678/stream/' in response.headers['Pull-Next']
     
+    def test_multipart_returns_array(self, client, mock_redis):
+        for i in range(3):
+            PixMessage.objects.create(
+                end_to_end_id=f'E12345678202301011234MUL{i}',
+                valor=Decimal('100.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        response = client.get('/api/pix/12345678/stream/start?format=multipart')
+
+        assert response.status_code == 200
+        assert isinstance(response.data, list)
+        assert len(response.data) == 3
+    
