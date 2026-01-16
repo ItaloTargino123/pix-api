@@ -169,3 +169,21 @@ class TestStreamResponse:
         assert isinstance(response.data, list)
         assert len(response.data) == 3
     
+    def test_multipart_with_accept_header(self, client, mock_redis):
+        for i in range(3):
+            PixMessage.objects.create(
+                end_to_end_id=f'E12345678202301011234HDR{i}',
+                valor=Decimal('100.00'),
+                pagador={'nome': 'Pagador', 'ispb': '00000000'},
+                recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+                data_hora_pagamento=timezone.now(),
+            )
+
+        response = client.get(
+            '/api/pix/12345678/stream/start',
+            HTTP_ACCEPT='multipart/json'
+        )
+
+        assert response.status_code == 200
+        assert isinstance(response.data, list)
+    
