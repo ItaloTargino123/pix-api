@@ -64,4 +64,24 @@ class TestGenerateMessages:
 
         msg = PixMessage.objects.first()
         assert msg.recebedor_ispb == '99999999'
+
+
+
+@pytest.mark.django_db
+class TestStreamStart:
+
+    def test_stream_start_returns_message(self, client, mock_redis):
+        PixMessage.objects.create(
+            end_to_end_id='E12345678202301011234START',
+            valor=Decimal('100.00'),
+            pagador={'nome': 'Pagador', 'ispb': '00000000'},
+            recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+            data_hora_pagamento=timezone.now(),
+        )
+
+        response = client.get('/api/pix/12345678/stream/start')
+
+        assert response.status_code == 200
+        assert 'Pull-Next' in response.headers
+        assert response.data['endToEndId'] == 'E12345678202301011234START'
     
