@@ -120,4 +120,18 @@ class TestStreamContinue:
         response = client.get('/api/pix/12345678/stream/invalidid')
 
         assert response.status_code == 404
+
+    def test_stream_delete_success(self, client, mock_redis):
+        stream = Stream.objects.create(ispb='12345678')
+
+        response = client.delete(f'/api/pix/12345678/stream/{stream.id}')
+
+        assert response.status_code == 200
+        stream.refresh_from_db()
+        assert stream.status == Stream.STATUS_CLOSED
+
+    def test_stream_delete_not_found(self, client, mock_redis):
+        response = client.delete('/api/pix/12345678/stream/invalidid')
+
+        assert response.status_code == 404
     
