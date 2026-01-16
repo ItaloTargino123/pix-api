@@ -131,3 +131,61 @@ async def stream_continue(request, ispb: str, interation_id: str):
     messages = await service.fetch_messages_with_polling(stream, limit)
     
     return build_response(messages, ispb, stream.id, is_multipart)
+
+
+
+
+@extend_schema(
+    summary='Gera mensagens PIX fake para testes',
+    parameters=[
+        OpenApiParameter(name='ispb', type=str, location='path', description='ISPB do recebedor (8 dígitos)'),
+        OpenApiParameter(name='quantity', type=int, location='path', description='Quantidade de mensagens (1-100)'),
+    ],
+    responses={201: {'description': 'Mensagens criadas'}},
+    tags=['Utilitários'],
+)
+@api_view(['POST'])
+def generate_messages(request, ispb: str, quantity: int):
+    """Gera mensagens PIX fake para testes."""
+
+    if not ispb.isdigit() or len(ispb) != 8:
+        return Response(
+            {'error': 'ISPB deve ter 8 dígitos'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if quantity < 1 or quantity > 100:
+        return Response(
+            {'error': 'Quantidade deve ser entre 1 e 100'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    messages = []
+    for _ in range(quantity):
+        msg = PixMessage.objects.create(
+            end_to_end_id=f'E{ispb}{timezone.now().strftime("%Y%m%d%H%M%S")}{fake.bothify("??########")}',
+            valor=fake.pydecimal(left_digits=4, right_digits=2, positive=True),
+            pagador={
+                'nome': fake.name(),
+                'cpfCnpj': fake.cpf(),
+                'ispb': fake.numerify('########'),
+                'agencia': fake.numerify('####'),
+                'contaTransacional': fake.numerify('#######'),
+                'tipoConta': fake.random_element(['CACC', 'SVGS']),
+            },
+            recebedor={
+                'nome': fake.name(),
+                'cpfCnpj': fake.cpf(),
+                'ispb': ispb,
+                'agencia': fake.numerify('####'),
+                'contaTransacional': fake.numerify('#######'),
+                'tipoConta': fake.random_element(['CACC', 'SVGS']),
+            },
+            data_hora_pagamento=timezone.now(),
+        )
+        messages.append(msg.end_to_end_id)
+
+    return Response(
+        {'created': len(messages), 'ispb': ispb, 'messages': messages},
+        status=status.HTTP_201_CREATED,
+    )
