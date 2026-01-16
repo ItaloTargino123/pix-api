@@ -116,3 +116,8 @@ class TestStreamContinue:
         assert response.status_code == 200
         assert 'Pull-Next' in response.headers
     
+    def test_stream_continue_not_found(self, client, mock_redis):
+        response = client.get('/api/pix/12345678/stream/invalidid')
+
+        assert response.status_code == 404
+    
