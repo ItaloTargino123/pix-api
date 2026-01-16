@@ -58,4 +58,10 @@ class TestGenerateMessages:
 
         assert response.status_code == 400
         assert 'error' in response.data
+
+    def test_generate_messages_sets_recebedor_ispb(self, client):
+        client.post('/api/pix/util/msgs/99999999/1/')
+
+        msg = PixMessage.objects.first()
+        assert msg.recebedor_ispb == '99999999'
     
