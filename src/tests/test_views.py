@@ -46,4 +46,16 @@ class TestGenerateMessages:
 
         assert response.status_code == 400
         assert 'error' in response.data
+
+    def test_generate_messages_quantity_too_low(self, client):
+        response = client.post('/api/pix/util/msgs/12345678/0/')
+
+        assert response.status_code == 400
+        assert 'error' in response.data
+
+    def test_generate_messages_quantity_too_high(self, client):
+        response = client.post('/api/pix/util/msgs/12345678/101/')
+
+        assert response.status_code == 400
+        assert 'error' in response.data
     
