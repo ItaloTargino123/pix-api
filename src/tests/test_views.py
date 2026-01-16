@@ -134,4 +134,22 @@ class TestStreamContinue:
         response = client.delete('/api/pix/12345678/stream/invalidid')
 
         assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestStreamResponse:
+
+    def test_response_has_pull_next_header(self, client, mock_redis):
+        PixMessage.objects.create(
+            end_to_end_id='E12345678202301011234HDR',
+            valor=Decimal('100.00'),
+            pagador={'nome': 'Pagador', 'ispb': '00000000'},
+            recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+            data_hora_pagamento=timezone.now(),
+        )
+
+        response = client.get('/api/pix/12345678/stream/start')
+
+        assert 'Pull-Next' in response.headers
+        assert '/api/pix/12345678/stream/' in response.headers['Pull-Next']
     
