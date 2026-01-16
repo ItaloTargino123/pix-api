@@ -34,3 +34,9 @@ class TestGenerateMessages:
         assert response.data['ispb'] == '12345678'
         assert len(response.data['messages']) == 5
         assert PixMessage.objects.count() == 5
+
+    def test_generate_messages_invalid_ispb_non_numeric(self, client):
+        response = client.post('/api/pix/util/msgs/abcdefgh/5/')
+
+        assert response.status_code == 400
+        assert 'error' in response.data
