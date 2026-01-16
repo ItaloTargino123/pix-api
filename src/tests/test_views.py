@@ -40,3 +40,10 @@ class TestGenerateMessages:
 
         assert response.status_code == 400
         assert 'error' in response.data
+
+    def test_generate_messages_invalid_ispb_wrong_length(self, client):
+        response = client.post('/api/pix/util/msgs/123/5/')
+
+        assert response.status_code == 400
+        assert 'error' in response.data
+    
