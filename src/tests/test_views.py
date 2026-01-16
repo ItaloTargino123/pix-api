@@ -89,4 +89,11 @@ class TestStreamStart:
         response = client.get('/api/pix/123/stream/start')
 
         assert response.status_code == 400
+
+    def test_stream_start_limit_exceeded(self, client, mock_redis):
+        mock_redis.get.return_value = b'6'
+
+        response = client.get('/api/pix/12345678/stream/start')
+
+        assert response.status_code == 429
     
