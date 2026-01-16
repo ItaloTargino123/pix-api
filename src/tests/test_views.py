@@ -187,3 +187,19 @@ class TestStreamResponse:
         assert response.status_code == 200
         assert isinstance(response.data, list)
     
+    def test_single_returns_object(self, client, mock_redis):
+        PixMessage.objects.create(
+            end_to_end_id='E12345678202301011234SGL',
+            valor=Decimal('100.00'),
+            pagador={'nome': 'Pagador', 'ispb': '00000000'},
+            recebedor={'nome': 'Recebedor', 'ispb': '12345678'},
+            data_hora_pagamento=timezone.now(),
+        )
+
+        response = client.get('/api/pix/12345678/stream/start')
+
+        assert response.status_code == 200
+        assert isinstance(response.data, dict)
+        assert 'endToEndId' in response.data
+
+    
