@@ -10,7 +10,10 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY src/ .
+COPY build.sh .
+RUN chmod +x build.sh
 
 EXPOSE 8000
 
-CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Em produção, sem --reload
+CMD ["sh", "-c", "./build.sh && uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
