@@ -131,10 +131,16 @@ Alternativa (se suportado no cliente): `?format=multipart`
 
 ## 🧪 Exemplos (curl)
 
+Para usar o que esta rodando na cloud, use a url https://pix-api-09kp.onrender.com/api/docs/, visite o site primeiro para iniciar o server.
+
 ### 1) Gerar mensagens fake
 
 ```bash
 curl -X POST http://localhost:8000/api/pix/util/msgs/32074986/10/
+
+ou
+
+curl -X POST https://pix-api-09kp.onrender.com/api/pix/util/msgs/32074986/10/
 ```
 
 ### 2) Iniciar um stream (1 mensagem por vez)
@@ -142,6 +148,11 @@ curl -X POST http://localhost:8000/api/pix/util/msgs/32074986/10/
 ```bash
 curl -i -H "Accept: application/json" \
   http://localhost:8000/api/pix/32074986/stream/start
+
+ou
+
+curl -i -H "Accept: application/json" \
+  https://pix-api-09kp.onrender.com/api/pix/32074986/stream/start
 ```
 
 Se houver mensagem disponível, você recebe `200` e um `Pull-Next`:
@@ -157,6 +168,11 @@ Content-Type: application/json
 ```bash
 curl -i -H "Accept: application/json" \
   http://localhost:8000/api/pix/32074986/stream/17myxj5wskjf
+
+ou
+
+curl -i -H "Accept: application/json" \
+  https://pix-api-09kp.onrender.com/api/pix/32074986/stream/17myxj5wskjf
 ```
 
 - Se chegar mensagem dentro do tempo: **200**
@@ -167,6 +183,11 @@ curl -i -H "Accept: application/json" \
 ```bash
 curl -i -H "Accept: multipart/json" \
   http://localhost:8000/api/pix/32074986/stream/start
+
+ou
+
+curl -i -H "Accept: multipart/json" \
+  https://pix-api-09kp.onrender.com/api/pix/32074986/stream/start
 ```
 
 ### 5) Encerrar o stream
@@ -175,6 +196,10 @@ Use o último `Pull-Next` que você recebeu:
 
 ```bash
 curl -X DELETE http://localhost:8000/api/pix/32074986/stream/9kp6a6l7c2ii
+
+ou
+
+curl -X DELETE https://pix-api-09kp.onrender.com/api/pix/32074986/stream/9kp6a6l7c2ii
 ```
 
 ---
