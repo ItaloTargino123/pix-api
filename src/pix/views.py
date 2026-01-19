@@ -41,13 +41,6 @@ def build_response(messages, ispb, stream_id, is_multipart):
     summary='Inicia um novo stream de coleta de mensagens PIX',
     parameters=[
         OpenApiParameter(name='ispb', type=str, location='path', description='ISPB (8 dígitos)'),
-        OpenApiParameter(
-            name='Accept',
-            type=str,
-            location='header',
-            description='application/json (1 msg) ou multipart/json (até 10 msgs)',
-            required=False,
-        ),
     ],
     responses={
         200: {'description': 'Mensagens disponíveis'},
@@ -86,13 +79,6 @@ async def stream_start(request, ispb: str):
     parameters=[
         OpenApiParameter(name='ispb', type=str, location='path', description='ISPB (8 dígitos)'),
         OpenApiParameter(name='interation_id', type=str, location='path', description='ID do stream'),
-        OpenApiParameter(
-            name='Accept',
-            type=str,
-            location='header',
-            description='application/json (1 msg) ou multipart/json (até 10 msgs)',
-            required=False,
-        ),
     ],
     responses={
         200: {'description': 'Mensagens disponíveis ou stream fechado'},
