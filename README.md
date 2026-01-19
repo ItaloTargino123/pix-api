@@ -43,6 +43,9 @@ Acesse a API no Render: https://pix-api-09kp.onrender.com/api/docs/
 
 ## 🏃 Rodando localmente
 
+Copiar o .env.example para .env e preencher com as mesmas credenciais do .env.example para rodar localmente.
+cp .env.example .env 
+
 ### Pré-requisitos
 
 - Docker e Docker Compose
